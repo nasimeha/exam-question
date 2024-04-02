@@ -1,0 +1,44 @@
+diff --git a/q2.html b/q2.html
+index b049c51..248911e 100644
+--- a/q2.html
++++ b/q2.html
+@@ -19,6 +19,8 @@
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.3/leaflet.js"></script>
+     <script>
+         var map = L.map('mapid').setView([55, -113], 5);
++        const monthNames = ["January", "February", "March", "April", "May", "June",
++  "July", "August", "September", "October", "November", "December"];
+ 
+         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+             attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+@@ -27,17 +29,28 @@
+         fetch('https://cwfis.cfs.nrcan.gc.ca/geoserver/public/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=public:activefires_current&srsname=EPSG:4326&outputFormat=json')
+             .then(response => response.json())
+             .then(data => {
+-                L.geoJSON(data.features, {
++                var albertaFires = data.features.filter(feature => feature.properties.agency === 'ab');
++                L.geoJSON(albertaFires, {
+                     style: function (feature) {
++                        var fill_value = 0.5
++                        if (feature.properties.hectares < 1)
++                          fill_value = 0
++                        else if (feature.properties.hectares > 1000)
++                          fill_value = 1
++                          
+                         var options = {
+                             color: '#FF0000',
+                             weight: 2,
+-                            fillOpacity: 0.5
++                            fillOpacity: fill_value
+                         }
+                         return options;
+                     },
+                     onEachFeature: function (feature, layer) {
++                        var d = new Date(feature.properties.startdate)
+                         var popupContent = "<p>"
++                            + "Fire Name: " + feature.properties.firename + "<br/>"
++                            + "Stage of Control: " + feature.properties.stage_of_control + "<br/>"
++                            + "Start Date: " + monthNames[d.getMonth()] + " " + d.getDate()+ "," + d.getFullYear() + "</br/>"
+                             + "Size: " + feature.properties.hectares + "<br/>"
+                             + "</p>";
+                         layer.bindPopup(popupContent);
